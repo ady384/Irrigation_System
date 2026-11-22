@@ -87,15 +87,16 @@ app.post('/get/dispozitive/typee', async (req, res) => {
   //console.log("body1: " + body1 + " unic_id: " + req.cookies.user + " indentify: " + req.cookies.indentify);
   res.send(get_info.get_dispozitive_type(body1, req.cookies.user, req.cookies.indentify)); 
 });
-app.post('/get/dispozitive', async (req, res) => { 
+app.post('/get/dispozitive', async (req, res) => { /// no security here . do it later
   res.send(db.prepare(`select id_dispozitiv from dispozitiv_ownd_users where Name = (select Name from Acces_login where unic_id = ?)`).all(req.cookies.user));});
-app.post('/dispozitiv/message/get', async (req, res) => {
+  app.post('/dispozitiv/message/get', async (req, res) => {
   let body1 = '';
   await req.on('data', chunk => {
     body1 += chunk.toString(); 
   });
   return res.send(get_info.message_dispozitiv(body1, req.cookies.user)); /// i will need to modify this in the future because the security is not greate
 })
+
 app.post('/user/send/dispozitiv', async (req, res) => {
   let body1 = '';
   await req.on('data', chunk => {

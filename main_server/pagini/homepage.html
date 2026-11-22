@@ -128,8 +128,9 @@
                         try {
                             const resp = await fetch('/user/send/dispozitiv',{
                                 method: 'POST',
-                                body: await doAllTheEncry(device.id_dispozitiv+":OF")
+                                body: await doAllTheEncry(device.id_dispozitiv+":OF"+ String(Math.random()).split(".")[1])
                             })
+
                             // let b = await resp.text();
                             // console.log(b + "////////////////////////////////////////////////")
                             // d.innerHTML = `<h3>Device ID: ${device.id_dispozitiv}</h3> <h4>Type: ${await doAllTheDecrypt(a)}</h4> <h4>Status: ${await  doAllTheDecrypt(b)} </h4>`;
@@ -141,11 +142,13 @@
                     });
                     const butoon_on = document.createElement("button");
                     butoon_on.innerHTML = "Turn on";
-                    butoon_on.addEventListener("click", async () => {
+                   butoon_on.addEventListener("click", async () => {
                         try {
+                             await console.log(String(Math.random()).split(".")[1]+"////////////////////////////////////////////////")
+                   
                             const resp = await fetch('/user/send/dispozitiv',{
                                 method: 'POST',
-                                body: await doAllTheEncry(device.id_dispozitiv+":ON"+ Math.random())
+                                body: await doAllTheEncry(device.id_dispozitiv+":ON"+ String(Math.random()).split(".")[1])
                             })
 
                         } catch (error) {
