@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style>
+        body{
+            background-color: rgb(16, 14, 14);
+            margin: 0%;
+            padding: 0%;
+            height: 100%;
+            width: 100%;
+        }
+        
+    </style>
+    <div style="display: flex; flex-direction: column; align-items: center;  ">
+                 
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; ;">
+        <h1 style=" color: white; padding: 10px; border-radius: 5px;">L21</h1>
+    <form id="loginForm" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <input type="text"  id = "username" placeholder="Username" style="margin: 20px; padding: 10px; border-radius: 5px; border: none; width: 200px;">
+    <input type="password" id="password" placeholder="Password" style="margin: 20px; padding: 10px; border-radius: 5px; border: none; width: 200px;">
+    <button type="submit" style="margin: 20px; padding: 10px; border-radius: 5px; width: 200px; border: none; background-color: #007bff; color: white; cursor: pointer;">Login</button>
+    </form>
+    </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", async function() {
+            console.log("DOM fully loaded and parsed");
+            const response = await fetch('/communication_encrypt', {
+                method: 'POST'
+            });
+            const data = await response.json();
+            localStorage.setItem("key1", data.key);
+            localStorage.setItem("iv", data.iv);
+            document.cookie = "indentify=" + data.indentify + "; max-age=125000";
+            const verifyResponse = await fetch('/verify_unic_id', {
+                method: 'POST'
+            });
+            if(await verifyResponse.text() === "true"){
+                window.location.href = '/homepage';
+            }
+        });
+    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const trimitere = username + ":" + password;
+        console.log("trimitere: "+trimitere)
+        const data = await doAllTheEncry(trimitere);
+        const response = await fetch('/homepage', {
+            method: 'POST',
+            body: data
+        });
+        const r = await response.text();
+        console.log("response from server: "+r)
+        if(r === "true"){
+            localStorage.setItem("username", username);
+            window.location.href = '/homepage';
+        } else{
+            alert("Invalid username or password");
+        }
+        // document.body.innerHTML = html;
+        //  history.pushState({}, '', '/homepage');
+
+        
+    });        
+function hexToBuffere(hex) {
+    return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
+    }
+async function doAllTheEncry(data){
+    console.log("data to encrypt "+data)
+    console.log("key: "+localStorage.getItem("key1"))
+    key = hexToBuffere(localStorage.getItem("key1"))
+    iv =  hexToBuffere(localStorage.getItem("iv"))
+    console.log("key: "+key + "type: "+typeof(key) + " iv: "+iv + "type: "+typeof(iv))
+    const cryptoKey = await  crypto.subtle.importKey(
+    "raw",
+    key,
+    { name: "AES-CBC" },
+    false,
+    ["encrypt"]
+    );
+    console.log("cryptoKey: "+cryptoKey + "tyoff" +typeof(cryptoKey))
+        console.log(typeof data)
+        let databuffer = new TextEncoder().encode(data);
+        console.log("data buffer "+databuffer + "type: "+typeof(databuffer))
+    let dataencrpyt = await crypto.subtle.encrypt( { name: "AES-CBC", iv: iv }, 
+    cryptoKey, 
+    new TextEncoder().encode(databuffer)
+    )
+    const dataString = btoa(String.fromCharCode(...new Uint8Array(dataencrpyt)));
+    return dataString
+}
+    </script>
+</body>
+</html>

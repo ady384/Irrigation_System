@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style>
+        body{
+            background-color: rgb(16, 14, 14);
+            margin: 0%;
+            padding: 0%;
+       background-repeat: no-repeat;
+        background-attachment: fixed;
+        }
+        h1{
+            color:rgb(192, 191, 191);
+            
+        }
+        h2{
+            color: rgb(231, 227, 227);
+        }
+        h4{
+            color: rgb(231, 227, 227);
+        }
+        .svgg{
+             stroke: rgb(255, 255, 255);
+            stroke-width: "2"; 
+        }
+        .svgg:hover{
+            stroke: rgb(60, 25, 254);
+            stroke-width: "4";
+            line {
+                stroke: rgb(60, 25, 254);
+                stroke-width: "4";
+            }
+        }
+   
+        /* .svgg:active ~ #slider{
+            --ex: -50px;
+           background-color: rgb(41, 105, 161);
+           transform: translateX(var(--ex)); 
+        } */
+         #slider.animatie{
+            --ex: -50px;
+           transform: translateX(var(--ex));
+         }
+             #slider {
+  transition: transform 1s ease; 
+}
+        h3{
+            color: rgb(231, 227, 227);
+            font-family: Arial, Helvetica, sans-serif;
+        }   
+    </style>
+    
+    <div style="display: grid; grid-template-columns: 0.25fr 0.75fr; height: 100vh; width: 100%;">
+        <div style="border-right:  5px solid rgb(16, 14, 14); padding: 10px; height: 100%;">
+            <div  >
+            
+            <svg class="svgg" style=" height: 60px; width: 60px; " >
+                <line x1="10" y1="35" x2="30" y2="35" class = "svgg"></line>    
+                <line x1="10" y1="30" x2="30" y2="30" class = "svgg"></line>
+                <line x1="10" y1="40" x2="30" y2="40" class = "svgg"></line>
+            </svg>
+            <div id="slider" >
+              <div id="sliderinter">
+              <h3 id="home">Home</h3>
+              <h3 id="devices">Devices</h3>
+              <h3 id="logout">Logout</h3>
+              </div>
+            </div>
+            </div>
+            
+            
+        </div>
+
+        <div id="gethome" style=" padding: 10px ; height: 100%;">
+            <h1 id="wlcome_home"> Welcome back</h1>
+
+        </div>
+        <div id="getdevices" style=" padding: 10px ; height: 100%; display: none;">
+            <h2>Devices</h2>
+            <div id="devices_list" style=" gap: 10px;">
+            </div>
+        </div>
+    </div>
+ 
+    <script>
+        document.addEventListener("DOMContentLoaded",async() => {
+            document.getElementById("wlcome_home").innerHTML = "Welcome back " + localStorage.getItem("username");
+            
+            const response = await fetch('/get/dispozitive', {
+                method: 'POST'
+            });
+
+            const data = await response;
+            data.json().then((data) => {
+                console.log("data from server: ", data);
+                const devices_list = document.getElementById("devices_list");
+                devices_list.innerHTML = "";
+                data.forEach(async (device)  => {
+                    const deviceDiv = document.createElement("div");
+                    const d = document.createElement("div");
+                    deviceDiv.style.border = "1px solid white";
+                    deviceDiv.style.padding = "10px";
+                    deviceDiv.style.height = "150px";
+                    deviceDiv.style.width = "550px";
+                    deviceDiv.style.borderRadius = "5px";
+                    deviceDiv.style.backgroundColor = "rgb(16, 14, 14)";
+                    console.log("device id: ", device.id_dispozitiv + " type: " + typeof device.id_dispozitiv);
+                    let encryptedDeviceId =  await doAllTheEncry(device.id_dispozitiv);
+                    console.log("encryptedDeviceId: ", encryptedDeviceId);
+                    const deviceTypeResponse =  await fetch('/get/dispozitive/typee', {
+                        method: 'POST',
+                        body: encryptedDeviceId
+                    });
+                    let a = await deviceTypeResponse.text()
+                    console.log("deviceTypeResponse: ", a + " type: " + typeof a);
+                    console.log("geq31 "+await doAllTheDecrypt(a));
+                    if(await doAllTheDecrypt(a) == "Pompa_apa"){
+                        deviceDiv.style.backgroundColor = "rgb(16, 14, 14)";
+                    deviceDiv.innerHTML = `<h3>Device ID: ${device.id_dispozitiv}</h3> <h4>Type: ${await doAllTheDecrypt(a)}</h4> `;
+                    const butoon_off = document.createElement("button");
+                    butoon_off.innerHTML = "Turn off";
+                    butoon_off.addEventListener("click", async () => {
+                        try {
+                            const resp = await fetch('/user/send/dispozitiv',{
+                                method: 'POST',
+                                body: await doAllTheEncry(device.id_dispozitiv+":OF")
+                            })
+                            // let b = await resp.text();
+                            // console.log(b + "////////////////////////////////////////////////")
+                            // d.innerHTML = `<h3>Device ID: ${device.id_dispozitiv}</h3> <h4>Type: ${await doAllTheDecrypt(a)}</h4> <h4>Status: ${await  doAllTheDecrypt(b)} </h4>`;
+                            // devices_list.appendChild(deviceDiv);
+                            //deviceDiv.appendChild(d);
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    });
+                    const butoon_on = document.createElement("button");
+                    butoon_on.innerHTML = "Turn on";
+                    butoon_on.addEventListener("click", async () => {
+                        try {
+                            const resp = await fetch('/user/send/dispozitiv',{
+                                method: 'POST',
+                                body: await doAllTheEncry(device.id_dispozitiv+":ON"+ Math.random())
+                            })
+
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    });
+
+                    butoon_off.style.borderRadius = "5px";
+                    butoon_on.style.borderRadius = "5px";
+                    butoon_off.style.backgroundColor = "rgb(255, 0, 0)";
+                    butoon_on.style.backgroundColor = "rgb(0, 255, 0)";
+                    butoon_off.style.margin = "10px";
+                    butoon_on.style.margin = "10px";
+                    butoon_off.style.padding = "10px";
+                    butoon_on.style.padding = "10px";
+                    deviceDiv.appendChild(butoon_off);
+                    deviceDiv.appendChild(butoon_on);
+                    devices_list.appendChild(deviceDiv);
+                  
+                    }else {
+                    try {
+                      
+                    const resp = await fetch('/get/dispozitiv/'+ await doAllTheDecrypt(a) + '/azi',{
+                        method: 'POST',
+                        body: await doAllTheEncry(device.id_dispozitiv)
+                    })
+                    let b = await resp.text();
+                    console.log(b + "////////////////////////////////////////////////")
+                    d.innerHTML = `<h3>Device ID: ${device.id_dispozitiv}</h3> <h4>Type: ${await doAllTheDecrypt(a)}</h4> <h4>Soil moisture Avrage today  %${await  doAllTheDecrypt(b)} </h4>`;
+                    devices_list.appendChild(deviceDiv);
+                    deviceDiv.appendChild(d);
+                    
+                      
+                    } catch (error) {
+                        
+                    deviceDiv.innerHTML = `<h3>Device ID: ${device.id_dispozitiv}</h3> <h4>Type: ${await doAllTheDecrypt(a)}</h4> `;
+                    console.log(error);
+                    devices_list.appendChild(deviceDiv);
+                    } 
+                }
+                    //console.log("decrypted device type: ", await doAllTheDecrypt(a));
+                });
+            });
+            console.log("data from server: ");
+        }); 
+    const gethome = document.getElementById("gethome");
+    const getdevices = document.getElementById("getdevices");
+    const svg = document.querySelector(".svgg");
+    const home = document.getElementById("home");
+    const devices = document.getElementById("devices");
+    const slider = document.getElementById("slider");
+    const sliderinter = document.getElementById("sliderinter");
+    let a2 = true; 
+    
+    svg.addEventListener("click", () => {
+        //  home.style.display = "block";
+        if(a2){
+            a2 = false;
+            slider.style.setProperty('--ex', '-100px');
+            slider.classList.toggle("animatie");
+            slider_time = setTimeout(() => {
+                sliderinter.style.display = "none";
+            }, 1000);
+
+        }else{
+            a2 = true;
+            clearTimeout(slider_time);
+            sliderinter.style.display = "block";
+          //  slider.style.transform = "translateX(-50px)";
+            slider.style.setProperty('--ex', '100px');
+            slider.classList.toggle("animatie");
+            
+            
+        }
+    });
+    devices.addEventListener("click", () => {
+        gethome.style.display = "none";
+        getdevices.style.display = "block";
+    });
+    home.addEventListener("click", () => {
+        gethome.style.display = "block";
+        getdevices.style.display = "none";
+    });
+    document.getElementById("logout").addEventListener("click", async () => {
+        cookieStore.delete("user");
+       window.location.href = '/login';
+    });
+    function hexToBuffere(hex) {
+  return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+}function bufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+// string base64 -> Uint8Array (robust, acceptă și base64url)
+function base64ToBuffer(base64) {
+    if (typeof base64 !== 'string') {
+        throw new Error("base64ToBuffer: input nu e string, e " + typeof base64);
+    }
+    let s = base64.trim().replace(/\s+/g, '');
+    s = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4 !== 0) s += '=';
+
+    const binary = atob(s);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+}
+
+
+async function doAllTheDecrypt(encryptedData) {
+    // encryptedData trebuie să fie string base64
+    if (typeof encryptedData !== 'string') {
+        if (encryptedData instanceof Uint8Array || encryptedData instanceof ArrayBuffer) {
+            encryptedData = bufferToBase64(encryptedData);
+        } else {
+            throw new Error("doAllTheDecrypt: input invalid, tip=" + typeof encryptedData);
+        }
+    }
+
+    const key = hexToBuffere(localStorage.getItem("key1"));
+    const iv  = hexToBuffere(localStorage.getItem("iv"));
+
+    const cryptoKey = await crypto.subtle.importKey(
+        "raw", key, { name: "AES-CBC" }, false, ["decrypt"]
+    );
+
+    const encryptedBuffer = base64ToBuffer(encryptedData);
+
+    const decryptedBuffer = await crypto.subtle.decrypt(
+        { name: "AES-CBC", iv },
+        cryptoKey,
+        encryptedBuffer
+    );
+
+    // 1. transformăm ArrayBuffer -> string
+    let text = new TextDecoder().decode(decryptedBuffer);
+
+    // 2. fallback pentru datele vechi criptate cu bug-ul (ex: "68,85,80")
+    if (/^\d+(,\d+)*$/.test(text)) {
+        try {
+            const bytes = new Uint8Array(text.split(',').map(Number));
+            text = new TextDecoder().decode(bytes);
+        } catch (e) {
+            // dacă nu merge, lăsăm textul așa cum e
+        }
+    }
+
+    // 3. log corect
+    console.log("decrypted:", text);
+
+    return text;
+}
+async function doAllTheEncry(data){
+    console.log("data to encrypt "+data)
+    console.log("key: "+localStorage.getItem("key1"))
+    key = hexToBuffere(localStorage.getItem("key1"))
+    iv =  hexToBuffere(localStorage.getItem("iv"))
+    console.log("key: "+key + "type: "+typeof(key) + " iv: "+iv + "type: "+typeof(iv))
+    const cryptoKey = await  crypto.subtle.importKey(
+    "raw",
+    key,
+    { name: "AES-CBC" },
+    false,
+    ["encrypt"]
+    );
+    console.log("cryptoKey: "+cryptoKey + "tyoff" +typeof(cryptoKey))
+        console.log(typeof data)
+        let databuffer = new TextEncoder().encode(data);
+        console.log("data buffer "+databuffer + "type: "+typeof(databuffer))
+    let dataencrpyt = await crypto.subtle.encrypt( { name: "AES-CBC", iv: iv }, 
+    cryptoKey, 
+    new TextEncoder().encode(databuffer)
+    )
+    const dataString = btoa(String.fromCharCode(...new Uint8Array(dataencrpyt)));
+    return dataString
+}
+    </script>
+</body>
+ 
+</html>
