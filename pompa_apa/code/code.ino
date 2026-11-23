@@ -26,10 +26,10 @@
 
 const int VAL_USCAT  = 850;   
 const int VAL_UD     = 350;  
-
+int  ON_OFF = 0 ;
 const char* ssid = "HUAWEI-R9Ct"; /// this is a secreat <---
 const char* parola = "r7x3SrWY";
-
+int a3 = 0;
 #include <mbedtls/aes.h>
 uint8_t cipher_key[32] = {
     0x02, 0x24, 0x67, 0xC5, 0xFD, 0x00, 0x9B, 0xB6,
@@ -62,7 +62,24 @@ void setup() {
   
   Serial.println("aaa");
 }
-
+void Motor_ON(){
+         Serial.println("ON");
+            digitalWrite(19, HIGH); 
+            digitalWrite(17, LOW); 
+            delay(1000);
+            digitalWrite(19, LOW); 
+            a3 = 1;
+            ON_OFF = 2;
+}
+void Motor_OFF(){
+            Serial.println("OF");
+            digitalWrite(19, LOW); 
+            digitalWrite(17, HIGH); 
+            delay(1000);
+            digitalWrite(17, LOW);
+            a3 =1 ;
+            ON_OFF = 1;
+}
 void loop() {
   //digitalWrite(PIN_POWER, HIGH);
   // delay(100);                    
@@ -98,25 +115,23 @@ void loop() {
      String a1 = decrypt(http.getString());
      //"79,78"
      String bucata = a1.substring(0, 5); 
-      int a3 = 0;
+
+      if (bucata == "77,78"){ // pornire Manual :3 
+        Motor_ON();
+      }else if(bucata == "77,70"){
+        Motor_OFF();
+      } else if(ON_OFF == 1){
       if (bucata == "79,78"){ // pornire 
-        Serial.println("ON");
-            digitalWrite(19, HIGH); 
-            digitalWrite(17, LOW); 
-            delay(1000);
-            digitalWrite(19, LOW); 
-            a3 = 1;
+       Motor_ON();
+      }
             
     http.end();
-      } else if(bucata == "79,70"){ // oprire apa
-               Serial.println("OF");
-            digitalWrite(19, LOW); 
-            digitalWrite(17, HIGH); 
-            delay(1000);
-            digitalWrite(17, LOW);
-            a3 =1 ;
-            
+      } else if(ON_OFF == 2){
+       if(bucata == "79,70"){ // oprire apa
+        Motor_OFF();
+
     http.end();
+      }
       }
       Serial.println("T1");
       if(a3 == 1){

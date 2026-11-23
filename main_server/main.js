@@ -108,6 +108,19 @@ app.post('/user/send/dispozitiv', async (req, res) => {
     res.status(400).send('INVALID message or device');
   }
 });
+app.post('/send/data/activation/dispozitiv',async(req,res)=>{
+  let body1 = '';
+  await req.on('data', chunk => {
+    body1 += chunk.toString(); 
+  });
+  console.log("body1: " + body1 + " unic_id: " + req.cookies.user + " indentify: " + req.cookies.indentify);
+  if(put_info.send_data_activation_dispozitiv(req.cookies.user,req.cookies.indentify,body1)){
+    res.status(200).send('Message sent successfully');
+  } else{
+    res.status(400).send('INVALID message or device');
+  }
+});
+
 app.post(`/dispozitiv/message/send`,express.text(), async (req, res) => {
   // let body1 = '';
   // await req.on('data', chunk => {

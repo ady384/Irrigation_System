@@ -96,11 +96,13 @@
             });
 
             const data = await response;
-            data.json().then((data) => {
+            const data_list = await data.json();
+
+              data_list.forEach(async (device) => {
                 console.log("data from server: ", data);
                 const devices_list = document.getElementById("devices_list");
                 devices_list.innerHTML = "";
-                data.forEach(async (device)  => {
+
                     const deviceDiv = document.createElement("div");
                     const d = document.createElement("div");
                     deviceDiv.style.border = "1px solid white";
@@ -109,20 +111,21 @@
                     deviceDiv.style.width = "550px";
                     deviceDiv.style.borderRadius = "5px";
                     deviceDiv.style.backgroundColor = "rgb(16, 14, 14)";
-                    console.log("device id: ", device.id_dispozitiv + " type: " + typeof device.id_dispozitiv);
+                    //console.log("device id: ", device.id_dispozitiv + " type: " + typeof device.id_dispozitiv);
                     let encryptedDeviceId =  await doAllTheEncry(device.id_dispozitiv);
-                    console.log("encryptedDeviceId: ", encryptedDeviceId);
+                    //console.log("encryptedDeviceId: ", encryptedDeviceId);
                     const deviceTypeResponse =  await fetch('/get/dispozitive/typee', {
                         method: 'POST',
                         body: encryptedDeviceId
                     });
                     let a = await deviceTypeResponse.text()
-                    console.log("deviceTypeResponse: ", a + " type: " + typeof a);
-                    console.log("geq31 "+await doAllTheDecrypt(a));
+                    //console.log("deviceTypeResponse: ", a + " type: " + typeof a);
+                    //console.log("geq31 "+await doAllTheDecrypt(a));
                     if(await doAllTheDecrypt(a) == "Pompa_apa"){
                         deviceDiv.style.backgroundColor = "rgb(16, 14, 14)";
                     deviceDiv.innerHTML = `<h3>Device ID: ${device.id_dispozitiv}</h3> <h4>Type: ${await doAllTheDecrypt(a)}</h4> `;
                     const butoon_off = document.createElement("button");
+                    //const div_1 = document.createElement("div");
                     butoon_off.innerHTML = "Turn off";
                     butoon_off.addEventListener("click", async () => {
                         try {
@@ -166,6 +169,77 @@
                     butoon_on.style.padding = "10px";
                     deviceDiv.appendChild(butoon_off);
                     deviceDiv.appendChild(butoon_on);
+
+
+                    const select = document.createElement("select");
+                    
+                    data_list.forEach(async (device) => {
+                       // if(await doAllTheDecrypt(a) != "Pompa_apa"){
+                            console.log("device id: ", device.id_dispozitiv + " type: " + typeof device.id_dispozitiv);
+                            const option = document.createElement("option");
+                            option.value = device.id_dispozitiv;
+                            option.text = device.id_dispozitiv;
+                            select.appendChild(option);
+                        //}
+                    });
+                    const select_type = document.createElement("select");
+                    const a2 = [">", "=", "<"];
+                    a2.forEach((value) => {
+                        const option = document.createElement("option");
+                        option.value = value;
+                        option.text = value;
+                        select_type.appendChild(option);
+                    });
+                    const text_input = document.createElement("input");
+                    const button_send = document.createElement("button");
+                    button_send.textContent = "Send";
+                    const select_ation = document.createElement("select");
+                    const a3 = ["Turn on", "Turn off"];
+                    a3.forEach((value) => {
+                        const option = document.createElement("option");
+                        option.value = value;
+                        option.text = value;
+                        select_ation.appendChild(option);
+                    });
+                    button_send.addEventListener("click", async () => {
+                        const selectedDeviceId = select.value;
+                        const selectedType = select_type.value;
+                        const inputValue = text_input.value;
+                        const selectedAction = select_ation.value;
+                        let d = "";
+                        let action = "";
+                        if(selectedDeviceId === "" || selectedType === "" || inputValue === ""){
+                            alert("Please fill all the fields");
+                            return;
+                        } else if(select_type.value === ">"){
+                            d = "biger";
+        
+                        } else if(select_type.value === "="){
+                            d = "equal";
+                        } else if(select_type.value === "<"){
+                            d = "smaller";
+                        }  
+                        if (select_ation.value === "Turn on"){
+                            action = "ON";
+                        } else if (select_ation.value === "Turn off"){
+                            action = "OF";
+                        }
+                        console.log("all the data: ", device.id_dispozitiv, selectedDeviceId, d, inputValue ,select_type.value, action);
+                        try {
+                            const resp = await fetch('/send/data/activation/dispozitiv',{
+                                method: 'POST',
+                                body: await doAllTheEncry(device.id_dispozitiv+":"+selectedDeviceId + ":" + d + ":" + inputValue + ":"+action+":" + String(Math.random()).split(".")[1])
+                            })
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    });
+                    text_input.type = "number";
+                    deviceDiv.appendChild(select);
+                    deviceDiv.appendChild(select_type);
+                    deviceDiv.appendChild(text_input);
+                    deviceDiv.appendChild(button_send);
+                    deviceDiv.appendChild(select_ation);
                     devices_list.appendChild(deviceDiv);
                   
                     }else {
@@ -193,7 +267,7 @@
                 });
             });
             console.log("data from server: ");
-        }); 
+      
     const gethome = document.getElementById("gethome");
     const getdevices = document.getElementById("getdevices");
     const svg = document.querySelector(".svgg");

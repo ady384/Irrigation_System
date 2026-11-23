@@ -26,7 +26,8 @@ db.exec(`CREATE table if not exists communication_encrypt(
 db.exec(`Create table if not exists dispozitiv(
     id_dispozitiv TEXT primary key,
     key_dispozitiv TEXT not null,
-    type_dispozitiv TEXT
+    type_dispozitiv TEXT,
+    manual_or_auto TEXT not null default 'manual'
     )`)
 db.exec(`Create table if not exists encrypt_dispozitiv(
     id_message integer primary key autoincrement,
@@ -50,7 +51,8 @@ db.exec(`Create table if not exists window_preferences(
     preferences TEXT not null,
     FOREIGN KEY (id_dispozitiv) REFERENCES dispozitiv(id_dispozitiv),
     FOREIGN KEY (Name) REFERENCES users(Name)
-    )`)    
+    )`)   
+     
 db.exec(`Create table if not exists message_dispozitiv(
     id_message integer primary key autoincrement,
     id_dispozitiv TEXT not null,
@@ -58,9 +60,18 @@ db.exec(`Create table if not exists message_dispozitiv(
     date_message DATETIME default current_timestamp,
     FOREIGN KEY (id_dispozitiv) REFERENCES dispozitiv(id_dispozitiv)
     )`)
+db.exec(`Create table activated_dispozitiv(
+    id integer primary key autoincrement,
+    id_dispozitiv TEXT not null,
+    type TEXT not null,
+    operetion TEXT not null,
+    numver INTEGER not null,
+    action TEXT not null,
+    FOREIGN KEY (id_dispozitiv) REFERENCES dispozitiv(id_dispozitiv)
+    )`)        
 db.exec(`Insert into dispozitiv (id_dispozitiv, key_dispozitiv, type_dispozitiv) VALUES ('dispozitiv1', 'key_dispozitiv1', 'DUP')`);
 db.exec(`Insert into encrypt_dispozitiv (key, iv, id_dispozitiv) VALUES ('022467c5fd009bb6b13f9a6b24072b04c8b8e06d152a53c95dc902e94d7047fc', 'c6ea10c27ed4ae8617459b180973663c', 'dispozitiv1')`);
-
+db.exec(`Insert into message_dispozitiv (id_dispozitiv, message) VALUES ('dispozitiv1', '20')`);
 db.exec(`Insert into dispozitiv (id_dispozitiv, key_dispozitiv, type_dispozitiv) VALUES ('dispozitiv2', 'key_dispozitiv2', 'Pompa_apa')`);
 db.exec(`Insert into encrypt_dispozitiv (key, iv, id_dispozitiv) VALUES ('022467c5fd009bb6b13f9a6b24072b04c8b8e06d152a53c85dc902e94d7047fc', 'c7ea10c27ed4ae8617459b180973663c', 'dispozitiv2')`);
 db.exec(`INSERT into users (Name, Password, gmail, level) VALUES ('ady','1234', 'adrianagopian987@gmail.com', 0)`);

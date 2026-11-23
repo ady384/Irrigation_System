@@ -23,7 +23,60 @@ function get_on_off_pompa_apa(message,identify){
    let continut = continut1.split(':')[0];
    console.log("continut: " + continut + " identify: " + identify);
    if(db.prepare(`select* from dispozitiv where id_dispozitiv = ? and type_dispozitiv = 'Pompa_apa' and key_dispozitiv = ?`).get(identify,continut) !== undefined){
-      return criptare.encrypt(db.prepare(`select message from message_dispozitiv where id_dispozitiv = ? order by date_message desc limit 1`).get(identify).message, db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
+   //       type TEXT not null,
+   //  operetion TEXT not null,
+   //  numver INTEGER not null,
+      let a31 = db.prepare(`select message from message_dispozitiv where id_dispozitiv = ? order by date_message desc limit 1`).get(identify).message;
+   
+     
+      if (a31.slice(0, 2)== "ON"){
+         return criptare.encrypt("MN" + String(Math.random()), db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
+      } else if (a31.slice(0, 2) == "OF"){ /// MN = Manual ON , MF = Manual OFF
+         return criptare.encrypt("MF" + String(Math.random()), db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
+      }
+   
+      if(db.prepare(`select manual_or_auto from dispozitiv where id_dispozitiv = ?`).get(identify).manual_or_auto == "auto"){
+      const a = db.prepare(`select action,type,operetion,numver from activated_dispozitiv where id_dispozitiv = ?`).all(identify);
+      
+      for(let i = 0; i < a.length; i++){
+         console.log("a: " + a[i].action + " " + a[i].type + " " + a[i].operetion + " " + a[i].numver);
+         switch(a[i].action){
+            case "ON":
+               switch (a[i].operetion){
+                  case"biger":
+                     if(db.prepare(`select * from message_dispozitiv where id_dispozitiv = ? order by date_message desc limit 1`).get(a[i].type).message > a[i].numver){
+                        console.log("message: " + db.prepare(`select * from message_dispozitiv where id_dispozitiv = ? order by date_message desc limit 1`).get(a[i].type).message + " numver: " + a[i].numver);
+                        return criptare.encrypt("ON" + String(Math.random()), db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
+                     }
+                  case"smaller":
+                     if(db.prepare(`select * from message_dispozitiv where id_dispozitiv = ? order by date_message desc limit 1`).get(a[i].type).message < a[i].numver){
+                        return criptare.encrypt("ON" + String(Math.random())  , db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
+                     }
+                  case"equal":
+                     if(db.prepare(`select * from message_dispozitiv where id_dispozitiv = ? order by date_message desc limit 1`).get(a[i].type).message == a[i].numver){
+                        return criptare.encrypt("ON" + String(Math.random()), db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
+                     }
+               }
+               case "OF":
+                  switch (a[i].operetion){
+                     case"biger":
+                        if(db.prepare(`select * from message_dispozitiv where id_dispozitiv = ? order by date_message desc limit 1`).get(a[i].type).message > a[i].numver){
+                           return criptare.encrypt("OFF" + String(Math.random()), db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
+                        }
+                     case"smaller":
+                        if(db.prepare(`select * from message_dispozitiv where id_dispozitiv = ? order by date_message desc limit 1`).get(a[i].type).message < a[i].numver){
+                           return criptare.encrypt("OFF" + String(Math.random()), db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
+                        }
+                     case"equal":
+                        if(db.prepare(`select * from message_dispozitiv where id_dispozitiv = ? order by date_message desc limit 1`).get(a[i].type).message == a[i].numver){
+                           return criptare.encrypt("OFF" + String(Math.random()), db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
+                        }
+                  }
+
+         }
+      }
+   }
+      return criptare.encrypt(a31, db.prepare('SELECT key FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).key, db.prepare('SELECT  iv FROM encrypt_dispozitiv WHERE id_dispozitiv = ? ').get(identify).iv);
    }
    return undefined;
 }
