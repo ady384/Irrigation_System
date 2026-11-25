@@ -2,6 +2,7 @@ const Database = require('better-sqlite3')
 const db =  Database('mydatabase.db')
 const put_info = require('./function/put_info.js')
 const express = require('express');
+const criptare = require('./function/criptare.js')
 const get_info = require('./function/get_information.js');
 const login = require('./function/login.js');
 const app = express('private');
@@ -128,6 +129,31 @@ app.post(`/dispozitiv/message/send`,express.text(), async (req, res) => {
   // });
 // console.log(body1+ "ddddddddddddddddddddddddd" + req.cookies.indentify+"//")
   if(put_info.message_dispozitiv(req.cookies.indentify,req.body)){
+    res.status(200).send('Message sent successfully');
+  } else{
+    res.status(400).send('INVALID message or device');
+  }
+});
+app.post('/get/auto_or_manual/dispozitiv',async(req,res)=>{
+  let body1 = '';
+  await req.on('data', chunk => {
+    body1 += chunk.toString(); 
+  });
+  res.send(get_info.get_auto_or_manual_dispozitiv(body1,req.cookies.user,req.cookies.indentify));
+
+
+});
+app.post(`get/ALL/activated/dispozitiv`,async(req,res)=>{
+  let body1 = '';
+  await req.on('data', chunk => {
+    body1 += chunk.toString(); 
+  });
+  if(db.prepare(`select* from dispozitiv_ownd_users where id_dispozitiv = ? and Name = (select Name from Acces_login where unic_id = ?)`).get(criptare.verifyinfo_level_0(body1).split(':')[0],req.cookies.user) !== undefined){
+    res.send(db.prepare(`select * from activated_dispozitiv where id_dispozitiv = ?`).all(criptare.verifyinfo_level_0(body1).split(':')[0]));
+  }
+});
+app.post(`/setauto_manual/dispozitiv`,express.text(), async (req, res) => {
+  if(put_info.set_auto_manual_dispozitiv(req.cookies.indentify,req.body,req.cookies.user)){
     res.status(200).send('Message sent successfully');
   } else{
     res.status(400).send('INVALID message or device');

@@ -80,7 +80,11 @@ function get_on_off_pompa_apa(message,identify){
    }
    return undefined;
 }
-
+function get_auto_or_manual_dispozitiv(message, unic_id, identify){
+   let continut = criptare.verifyinfo_level_0(message, identify);
+   if(db.prepare(`select* from dispozitiv_ownd_users where id_dispozitiv = ? and Name = (select Name from Acces_login where unic_id = ?)`).get(continut,unic_id) !== undefined){
+      return criptare.encrypt(db.prepare(`select manual_or_auto from dispozitiv where id_dispozitiv = ?`).get(continut).manual_or_auto, db.prepare('SELECT key, iv FROM communication_encrypt WHERE identify = ? ').get(identify).key, db.prepare('SELECT key, iv FROM communication_encrypt WHERE identify = ? ').get(identify).iv);}
+   }
 function get_DUP_AZI_media(message,identify,unic_id){
    let continut = criptare.verifyinfo_level_0(message, identify);
    console.log("dd"+continut + " user" + unic_id)
@@ -97,6 +101,7 @@ function get_DUP_AZI_media(message,identify,unic_id){
    
 
 }
+module.exports.get_auto_or_manual_dispozitiv = get_auto_or_manual_dispozitiv;
 module.exports.get_on_off_pompa_apa = get_on_off_pompa_apa;
 module.exports.get_DUP_AZI_media = get_DUP_AZI_media;
 module.exports.get_dispozitive_type = get_dispozitive_type;

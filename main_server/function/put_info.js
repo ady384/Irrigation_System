@@ -21,15 +21,25 @@ function send_message_dispozitiv_user(unic_id,iddentify, message) {
 }
 function send_data_activation_dispozitiv(unic_id, iddentify, body1) {
     let info = deycrept.verifyinfo_level_0(body1, iddentify);
-    console.log("info: " + info.split(':')[0] + " " + info.split(':')[1] + " " + info.split(':')[2] + " " + parseInt(info.split(':')[3]) + " " + info.split(':')[4]);
+    //console.log("info: " + info.split(':')[0] + " " + info.split(':')[1] + " " + info.split(':')[2] + " " + parseInt(info.split(':')[3]) + " " + info.split(':')[4]);
     if(db.prepare(`select* from dispozitiv_ownd_users where id_dispozitiv = ? and Name = (select Name from Acces_login where unic_id = ?)`).get(info.split(':')[0], unic_id) !== undefined){
         db.prepare(`INSERT INTO activated_dispozitiv (id_dispozitiv, type, operetion, numver, action) VALUES (?, ?, ?, ?, ?)`).run(info.split(':')[0], info.split(':')[1], info.split(':')[2], parseInt(info.split(':')[3]), info.split(':')[4]);
-       console.log("info: " + info.split(':')[0] + " " + info.split(':')[1] + " " + info.split(':')[2] + " " + parseInt(info.split(':')[3]) + " " + info.split(':')[4]);
+       //console.log("info: " + info.split(':')[0] + " " + info.split(':')[1] + " " + info.split(':')[2] + " " + parseInt(info.split(':')[3]) + " " + info.split(':')[4]);
         return true;
     }else{
         return false;
     }
 }
+function set_auto_manual_dispozitiv(iddentify, body1, unic_id) {
+    let info = deycrept.verifyinfo_level_0(body1, iddentify);
+    console.log("info: " + info.split(':')[0] + " " + info.split(':')[1]);
+    if(db.prepare(`select * from dispozitiv_ownd_users where id_dispozitiv = ? and Name = (select Name from Acces_login where unic_id = ?)`).get(info.split(':')[0], unic_id) !== undefined){
+        db.prepare(`UPDATE dispozitiv SET manual_or_auto = ? WHERE id_dispozitiv = ?`).run(info.split(':')[1], info.split(':')[0]);
+        console.log("info: " + info.split(':')[0] + " " + info.split(':')[1]);
+        return true;
+    }
+}
+
 function message_dispozitiv(id_dispozitiv, message) {
     let info = deycrept.decrypt_dispozitiv_level_0(message, id_dispozitiv);
     //console.log("(put_info) info "+ info + "message"+message);
@@ -40,6 +50,7 @@ function message_dispozitiv(id_dispozitiv, message) {
     }
     return false;
 }
+module.exports.set_auto_manual_dispozitiv = set_auto_manual_dispozitiv;
 module.exports.send_message_dispozitiv_user = send_message_dispozitiv_user;
 module.exports.comunication_encrypt = comunication_encrypt;
 module.exports.Access_login_0 = Access_login_0;

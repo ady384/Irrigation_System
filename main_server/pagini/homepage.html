@@ -55,15 +55,11 @@
         }   
     </style>
     
-    <div style="display: grid; grid-template-columns: 0.25fr 0.75fr; height: 100vh; width: 100%;">
+    <div style="display: grid; grid-template-columns: 0.15fr 0.05fr 1fr; height: 100vh; width: 100%;" id="maindisplay">
         <div style="border-right:  5px solid rgb(16, 14, 14); padding: 10px; height: 100%;">
             <div  >
             
-            <svg class="svgg" style=" height: 60px; width: 60px; " >
-                <line x1="10" y1="35" x2="30" y2="35" class = "svgg"></line>    
-                <line x1="10" y1="30" x2="30" y2="30" class = "svgg"></line>
-                <line x1="10" y1="40" x2="30" y2="40" class = "svgg"></line>
-            </svg>
+
             <div id="slider" >
               <div id="sliderinter">
               <h3 id="home">Home</h3>
@@ -75,10 +71,16 @@
             
             
         </div>
-
+        <div>
+               <svg class="svgg" style=" height: 60px; width: 60px; " >
+                <line x1="10" y1="35" x2="30" y2="35" class = "svgg"></line>    
+                <line x1="10" y1="30" x2="30" y2="30" class = "svgg"></line>
+                <line x1="10" y1="40" x2="30" y2="40" class = "svgg"></line>
+            </svg>
+        </div>
         <div id="gethome" style=" padding: 10px ; height: 100%;">
             <h1 id="wlcome_home"> Welcome back</h1>
-
+         
         </div>
         <div id="getdevices" style=" padding: 10px ; height: 100%; display: none;">
             <h2>Devices</h2>
@@ -107,10 +109,18 @@
                     const d = document.createElement("div");
                     deviceDiv.style.border = "1px solid white";
                     deviceDiv.style.padding = "10px";
-                    deviceDiv.style.height = "150px";
-                    deviceDiv.style.width = "550px";
+                    deviceDiv.style.height = "1fr";
+                    deviceDiv.style.width = "1fr";
                     deviceDiv.style.borderRadius = "5px";
                     deviceDiv.style.backgroundColor = "rgb(16, 14, 14)";
+                    const manual_or_auto = document.createElement("h4");   
+                     let  status1 = await fetch(`/get/auto_or_manual/dispozitiv`, {
+                        method: 'POST',
+                        body: await doAllTheEncry(device.id_dispozitiv)
+                    });
+                    let status2 = await status1.text();
+                    manual_or_auto.innerHTML = "Mode: " + await doAllTheDecrypt( status2); 
+                    deviceDiv.appendChild(manual_or_auto);
                     //console.log("device id: ", device.id_dispozitiv + " type: " + typeof device.id_dispozitiv);
                     let encryptedDeviceId =  await doAllTheEncry(device.id_dispozitiv);
                     //console.log("encryptedDeviceId: ", encryptedDeviceId);
@@ -240,6 +250,38 @@
                     deviceDiv.appendChild(text_input);
                     deviceDiv.appendChild(button_send);
                     deviceDiv.appendChild(select_ation);
+
+                    const buton_auto = document.createElement("button");
+                    buton_auto.textContent = "Set auto";
+                    buton_auto.addEventListener("click", async () => {
+                        try {
+                            const resp = await fetch('/setauto_manual/dispozitiv',{
+                                method: 'POST',
+                                body: await doAllTheEncry(device.id_dispozitiv+":"+"auto"+":" + String(Math.random()).split(".")[1])
+                            })
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    });
+                         const buton_manual = document.createElement("button");
+                    buton_manual.textContent = "Set manual";
+                    buton_manual.addEventListener("click", async () => {
+                        try {
+                            const resp = await fetch('/setauto_manual/dispozitiv',{
+                                method: 'POST',
+                                body: await doAllTheEncry(device.id_dispozitiv+":"+"manual"+":" + String(Math.random()).split(".")[1])
+                            })
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    });
+                    buton_auto.style.borderRadius = "5px";
+                    buton_manual.style.borderRadius = "5px";
+                    buton_auto.style.backgroundColor = "rgb(55, 143, 237)";
+                    buton_manual.style.backgroundColor = "rgb(55, 143, 237)";
+                    deviceDiv.appendChild(buton_auto);
+                    deviceDiv.appendChild(buton_manual);
+                    
                     devices_list.appendChild(deviceDiv);
                   
                     }else {
@@ -279,10 +321,13 @@
     
     svg.addEventListener("click", () => {
         //  home.style.display = "block";
+        const maindisplay = document.getElementById("maindisplay");
         if(a2){
+            
             a2 = false;
             slider.style.setProperty('--ex', '-100px');
             slider.classList.toggle("animatie");
+            maindisplay.style.gridTemplateColumns = "0fr 0.05fr 1fr";
             slider_time = setTimeout(() => {
                 sliderinter.style.display = "none";
             }, 1000);
@@ -294,7 +339,7 @@
           //  slider.style.transform = "translateX(-50px)";
             slider.style.setProperty('--ex', '100px');
             slider.classList.toggle("animatie");
-            
+            maindisplay.style.gridTemplateColumns = "0.15fr 0.05fr 1fr";
             
         }
     });
