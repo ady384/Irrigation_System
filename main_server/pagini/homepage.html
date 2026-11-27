@@ -52,7 +52,12 @@
         h3{
             color: rgb(231, 227, 227);
             font-family: Arial, Helvetica, sans-serif;
-        }   
+        }  
+        table, th, td {
+            border: 1px solid white;
+            border-collapse: collapse;
+            color: white;
+        } 
     </style>
     
     <div style="display: grid; grid-template-columns: 0.15fr 0.05fr 1fr; height: 100vh; width: 100%;" id="maindisplay">
@@ -92,7 +97,17 @@
     <script>
         document.addEventListener("DOMContentLoaded",async() => {
             document.getElementById("wlcome_home").innerHTML = "Welcome back " + localStorage.getItem("username");
+           try {
+              const locatie_selectata = localStorage.getItem("locatie_selectata");
+            if(locatie_selectata === "getdevices"){
+                document.getElementById("gethome").style.display = "none";
+                document.getElementById("getdevices").style.display = "block";
+            }
+          
+           } catch (    error) {
+            console.log(error);
             
+           }
             const response = await fetch('/get/dispozitive', {
                 method: 'POST'
             });
@@ -181,6 +196,84 @@
                     deviceDiv.appendChild(butoon_on);
 
 
+
+                     const tabelinfo = await fetch('get/ALL/activated/dispozitiv',{
+                        method: 'POST',
+                        body: await doAllTheEncry(device.id_dispozitiv)
+                    })
+                    const tabel = document.createElement("table");
+                    const tr = document.createElement("tr");
+                    const th1 = document.createElement("th");
+                     th1.textContent = "Device ID";
+    //                     id integer primary key autoincrement,
+    // id_dispozitiv TEXT not null,
+    // type TEXT not null,
+    // operetion TEXT not null,
+    // numver INTEGER not null,
+    // action TEXT not null,
+    // FOREIGN KEY (id_dispozitiv) REFERENCES dispozitiv(id_dispozitiv)
+                   // const th2 = document.createElement("th");
+                   // th2.textContent = "Type";
+                    const th3 = document.createElement("th");
+                    th3.textContent = "Operation";
+                    const th4 = document.createElement("th");
+                    th4.textContent = "Number";
+                    const th5 = document.createElement("th");
+                    th5.textContent = "Action";
+                    const th6 = document.createElement("th");
+                    th6.textContent = "DELETE";
+                    tr.appendChild(th1);
+                    //tr.appendChild(th2);
+                    tr.appendChild(th3);
+                    tr.appendChild(th4);
+                    tr.appendChild(th5);
+                    tr.appendChild(th6);
+                    tabel.appendChild(tr);
+
+                    const tabeldata = await tabelinfo.text();
+                    const tabeldata_decrypted = await doAllTheDecrypt(tabeldata);
+                    console.log("tabeldata_decrypted: ", tabeldata_decrypted);
+                    tabeldata_decrypted.split("/").forEach((row) => {
+                            if (row.trim() === "") return; // skip empty rows
+                            const tr = document.createElement("tr");
+                            //const td1 = document.createElement("td");
+                            //td1.textContent = value;
+                            const td2 = document.createElement("td");
+                            td2.textContent = row.split(":")[1];
+                            const td3 = document.createElement("td");
+                            td3.textContent = row.split(":")[2];
+                            const td4 = document.createElement("td");
+                            td4.textContent = row.split(":")[3];
+                            const td5 = document.createElement("td");
+                            td5.textContent = row.split(":")[4];
+                           // tr.appendChild(td1);
+                            tr.appendChild(td2);
+                            tr.appendChild(td3);
+                            tr.appendChild(td4);
+                            tr.appendChild(td5);
+                            const td6 = document.createElement("button");
+                            td6.textContent = "DELETE";
+                            td6.addEventListener("click", async () => {
+                                try {
+                                    const resp = await fetch('/delete/activation/dispozitiv',{
+                                        method: 'POST',
+                                        body: await doAllTheEncry( row+ ":" + String(Math.random()).split(".")[1])
+                                    })
+                                    tr.remove();
+                                } catch (error) {
+                                    console.log(error);
+                                }
+                            });
+                            tr.appendChild(td6);
+                            tabel.appendChild(tr);
+                       
+                    });
+
+                   
+
+
+
+
                     const select = document.createElement("select");
                     
                     data_list.forEach(async (device) => {
@@ -234,6 +327,34 @@
                         } else if (select_ation.value === "Turn off"){
                             action = "OF";
                         }
+                        const tr = document.createElement("tr");
+                        const td1 = document.createElement("td");
+                        td1.textContent = selectedDeviceId;
+                        const td2 = document.createElement("td");
+                        td2.textContent = d;
+                        const td3 = document.createElement("td");
+                        td3.textContent = inputValue;
+                        const td4 = document.createElement("td");
+                        td4.textContent = action;
+                        const td5 = document.createElement("button");
+                        td5.textContent = "DELETE";
+                        td5.addEventListener("click", async () => {
+                            try {
+                                const resp = await fetch('/delete/activation/dispozitiv',{
+                                    method: 'POST',
+                                    body: await doAllTheEncry(device.id_dispozitiv+":"+selectedDeviceId + ":" + d + ":" + inputValue + ":" + action + ":" + String(Math.random()).split(".")[1])
+                                })
+                                tr.remove();
+                            } catch (error) {
+                                console.log(error);
+                            }
+                        });
+                        tr.appendChild(td1);
+                        tr.appendChild(td2);
+                        tr.appendChild(td3);
+                        tr.appendChild(td4);
+                        tr.appendChild(td5);
+                        tabel.appendChild(tr);
                         console.log("all the data: ", device.id_dispozitiv, selectedDeviceId, d, inputValue ,select_type.value, action);
                         try {
                             const resp = await fetch('/send/data/activation/dispozitiv',{
@@ -245,6 +366,15 @@
                         }
                     });
                     text_input.type = "number";
+
+                    
+
+
+
+
+
+
+                    deviceDiv.appendChild(tabel);
                     deviceDiv.appendChild(select);
                     deviceDiv.appendChild(select_type);
                     deviceDiv.appendChild(text_input);
@@ -344,10 +474,19 @@
         }
     });
     devices.addEventListener("click", () => {
-        gethome.style.display = "none";
+        
+        localStorage.setItem("locatie_selectata", "getdevices");
+    //    let locatieselectata_id = localStorage.getItem("locatie_selectata");
+    //    let locatie_selectata = document.getElementById("locatie_selectata");
+         gethome.style.display = "none";
+        //locatie_selectata.style.display = "none";
         getdevices.style.display = "block";
     });
     home.addEventListener("click", () => {
+        
+        localStorage.setItem("locatie_selectata", "gethome");
+       // let locatie_selectata = document.getElementById("locatie_selectata");
+       // locatie_selectata.style.display = "block";
         gethome.style.display = "block";
         getdevices.style.display = "none";
     });
@@ -451,6 +590,7 @@ async function doAllTheEncry(data){
     const dataString = btoa(String.fromCharCode(...new Uint8Array(dataencrpyt)));
     return dataString
 }
+
     </script>
 </body>
  

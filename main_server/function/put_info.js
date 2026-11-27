@@ -39,7 +39,21 @@ function set_auto_manual_dispozitiv(iddentify, body1, unic_id) {
         return true;
     }
 }
-
+function delete_activation_dispozitiv(body1, unic_id, iddentify) {
+    let info = deycrept.verifyinfo_level_0(body1, iddentify);
+    console.log("info: " + info.split(':')[0] + " " + info.split(':')[1]);
+    if(db.prepare(`select * from dispozitiv_ownd_users where id_dispozitiv = ? and Name = (select Name from Acces_login where unic_id = ?)`).get(info.split(':')[0], unic_id) !== undefined){
+    //       id_dispozitiv TEXT not null,
+    // type TEXT not null,
+    // operetion TEXT not null,
+    // numver INTEGER not null,
+    // action TEXT not null,
+        db.prepare(`DELETE FROM activated_dispozitiv WHERE id_dispozitiv = ? AND type = ? and operetion = ? and numver = ? and action = ?`).run(info.split(':')[0], info.split(':')[1], info.split(':')[2], info.split(':')[3], info.split(':')[4]);
+        console.log("info: " + info.split(':')[0] + " " + info.split(':')[1] + " " + info.split(':')[2] + " " + info.split(':')[3] + " " + info.split(':')[4]);
+        return true;
+    }
+     return false;
+}
 function message_dispozitiv(id_dispozitiv, message) {
     let info = deycrept.decrypt_dispozitiv_level_0(message, id_dispozitiv);
     //console.log("(put_info) info "+ info + "message"+message);
@@ -50,6 +64,7 @@ function message_dispozitiv(id_dispozitiv, message) {
     }
     return false;
 }
+module.exports.delete_activation_dispozitiv = delete_activation_dispozitiv;
 module.exports.set_auto_manual_dispozitiv = set_auto_manual_dispozitiv;
 module.exports.send_message_dispozitiv_user = send_message_dispozitiv_user;
 module.exports.comunication_encrypt = comunication_encrypt;

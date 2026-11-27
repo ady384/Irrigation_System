@@ -143,13 +143,30 @@ app.post('/get/auto_or_manual/dispozitiv',async(req,res)=>{
 
 
 });
-app.post(`get/ALL/activated/dispozitiv`,async(req,res)=>{
+app.post('/delete/activation/dispozitiv',async(req,res)=>{
   let body1 = '';
   await req.on('data', chunk => {
     body1 += chunk.toString(); 
   });
-  if(db.prepare(`select* from dispozitiv_ownd_users where id_dispozitiv = ? and Name = (select Name from Acces_login where unic_id = ?)`).get(criptare.verifyinfo_level_0(body1).split(':')[0],req.cookies.user) !== undefined){
-    res.send(db.prepare(`select * from activated_dispozitiv where id_dispozitiv = ?`).all(criptare.verifyinfo_level_0(body1).split(':')[0]));
+  if(put_info.delete_activation_dispozitiv(body1,req.cookies.user,req.cookies.indentify)){
+    res.status(200).send('Message sent successfully');
+  } else{
+    res.status(400).send('INVALID message or device');
+  }
+});
+app.post(`/get/ALL/activated/dispozitiv`,async(req,res)=>{
+  let body1 = '';
+  await req.on('data', chunk => {
+    body1 += chunk.toString(); 
+  });
+  if(db.prepare(`select* from dispozitiv_ownd_users where id_dispozitiv = ? and Name = (select Name from Acces_login where unic_id = ?)`).get(criptare.verifyinfo_level_0(body1,req.cookies.indentify).split(':')[0],req.cookies.user) !== undefined){
+    let a = await db.prepare(`select * from activated_dispozitiv where id_dispozitiv = ?`).all(criptare.verifyinfo_level_0(body1,req.cookies.indentify).split(':')[0]);
+    let a1 = "";
+    for(let i = 0; i < a.length; i++){
+      a1 += a[i].id_dispozitiv + ":" + a[i].type + ":" + a[i].operetion + ":" + a[i].numver + ":" + a[i].action + "/";
+
+    }
+    res.send(criptare.encrypt(a1,db.prepare(`select key, iv from communication_encrypt where identify = ?`).get(req.cookies.indentify).key,db.prepare(`select key, iv from communication_encrypt where identify = ?`).get(req.cookies.indentify).iv));
   }
 });
 app.post(`/setauto_manual/dispozitiv`,express.text(), async (req, res) => {
